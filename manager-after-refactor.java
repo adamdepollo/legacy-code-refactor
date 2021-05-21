@@ -1,4 +1,4 @@
-package com.routeone.cas.worksheet.manager;
+package com.refactor.worksheet.manager;
 
 import java.util.Locale;
 import java.util.Map;
@@ -13,23 +13,23 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.struts.validator.DynaValidatorActionForm;
 
-import com.routeone.cas.common.CASConstants;
-import com.routeone.cas.common.i18n.I18NContext;
-import com.routeone.cas.common.services.ServicesUtil;
-import com.routeone.cas.common.util.CommonUtil;
-import com.routeone.cas.creditapplication.action.CASCreditAppDispatchAction;
-import com.routeone.cas.creditapplication.dataobject.CreditApplicationDO;
-import com.routeone.cas.creditapplication.util.TOFieldTransformations;
-import com.routeone.cas.creditapplication.util.WorksheetUtil;
-import com.routeone.cas.domain.User;
-import com.routeone.cas.esign.managers.WSCeSignDisplayManager;
-import com.routeone.cas.esign.managers.WSCeSignRequestManager;
-import com.routeone.cas.framework.exception.newex.CASApplicationException;
-import com.routeone.cas.framework.exception.newex.CASSystemException;
-import com.routeone.cas.worksheet.base.AbstractManager;
-import com.routeone.cas.worksheet.constant.WorksheetConstants;
-import com.routeone.cas.worksheet.doutil.WorksheetContractTermsDAUtil;
-import com.routeone.cas.worksheet.factory.WscManagerFactory;
+import com.refactor.common.Constants;
+import com.refactor.common.i18n.I18NContext;
+import com.refactor.common.services.ServicesUtil;
+import com.refactor.common.util.CommonUtil;
+import com.refactor.creditapplication.action.CreditAppDispatchAction;
+import com.refactor.creditapplication.dataobject.CreditApplicationDO;
+import com.refactor.creditapplication.util.TOFieldTransformations;
+import com.refactor.creditapplication.util.WorksheetUtil;
+import com.refactor.domain.User;
+import com.refactor.esign.managers.DisplayManager;
+import com.refactor.esign.managers.RequestManager;
+import com.refactor.framework.exception.newex.ApplicationException;
+import com.refactor.framework.exception.newex.SystemException;
+import com.refactor.worksheet.base.AbstractManager;
+import com.refactor.worksheet.constant.WorksheetConstants;
+import com.refactor.worksheet.doutil.WorksheetContractTermsDAUtil;
+import com.refactor.worksheet.factory.ManagerFactory;
 
 /**
  * @author Adam DePollo 5/14/2020
@@ -37,19 +37,19 @@ import com.routeone.cas.worksheet.factory.WscManagerFactory;
  */
 public class SaveEsignDocumentsAndViewSignStatusManager extends AbstractManager{
 	
-	private WSCeSignDisplayManager displayManager = new WSCeSignDisplayManager();
+	private DisplayManager displayManager = new DisplayManager();
 	private WorksheetUtil worksheetUtil = new WorksheetUtil();
 	private ServicesUtil servicesUtil = new ServicesUtil();
 	private WorksheetContractTermsDAUtil worksheetContractTermsDAUtil = new WorksheetContractTermsDAUtil();
-	private WSCeSignRequestManager wsceSignRequestManager = new WSCeSignRequestManager();
-	private WscManagerFactory wscManagerFactory = new WscManagerFactory();
+	private RequestManager requestManager = new RequestManager();
+	private ManagerFactory managerFactory = new ManagerFactory();
 	
 	private DynaValidatorActionForm caForm;
 	private DynaValidatorActionForm dForm;
 	private HttpServletRequest request;
 	private String dealerState;
 	private String finalIntRate;
-	private CASCreditAppDispatchAction subject;
+	private CreditAppDispatchAction subject;
 	private I18NContext context;
 	private String printLang;
 	private String caOid;
@@ -63,7 +63,7 @@ public class SaveEsignDocumentsAndViewSignStatusManager extends AbstractManager{
 	private String printInputXml;
 	private Set<UUID> documentContextIdList;
 	
-	public void initializeDataValues(DynaValidatorActionForm dForm, HttpServletRequest request, CASCreditAppDispatchAction subject) throws CASSystemException, CASApplicationException {
+	public void initializeDataValues(DynaValidatorActionForm dForm, HttpServletRequest request, CreditAppDispatchAction subject) throws SystemException, ApplicationException {
 		setRequest(request);
 		setSubject(subject);
 		setdForm(dForm);
@@ -139,11 +139,11 @@ public class SaveEsignDocumentsAndViewSignStatusManager extends AbstractManager{
 		this.finalIntRate = (String) dForm.getMap().get(WorksheetConstants.ContractProgram.FINAL_INTEREST_RATE);
 	}
 
-	public CASCreditAppDispatchAction getSubject() {
+	public CreditAppDispatchAction getSubject() {
 		return subject;
 	}
 
-	public void setSubject(CASCreditAppDispatchAction subject) {
+	public void setSubject(CreditAppDispatchAction subject) {
 		this.subject = subject;
 	}
 
@@ -152,7 +152,7 @@ public class SaveEsignDocumentsAndViewSignStatusManager extends AbstractManager{
 	}
 
 	public void setContext() {
-		this.context = (I18NContext) request.getSession(false).getAttribute(CASConstants.INTERNATIONALIZATION_CONTEXT);
+		this.context = (I18NContext) request.getSession(false).getAttribute(Constants.INTERNATIONALIZATION_CONTEXT);
 	}
 
 	public String getPrintLang() {
@@ -179,11 +179,11 @@ public class SaveEsignDocumentsAndViewSignStatusManager extends AbstractManager{
 		this.session = request.getSession(false);
 	}
 
-	public WSCeSignDisplayManager getDisplayManager() {
+	public DisplayManager getDisplayManager() {
 		return displayManager;
 	}
 
-	public void setDisplayManager(WSCeSignDisplayManager displayManager) {
+	public void setDisplayManager(DisplayManager displayManager) {
 		this.displayManager = displayManager;
 	}
 
@@ -208,7 +208,7 @@ public class SaveEsignDocumentsAndViewSignStatusManager extends AbstractManager{
 	}
 	
 	public void setDlrOid() {
-		this.dlrOid = (Long) session.getAttribute(CASConstants.ROUTEONE_DEALER_OID);
+		this.dlrOid = (Long) session.getAttribute(Constants._DEALER_OID);
 	}
 
 	public User getUser() {
@@ -219,7 +219,7 @@ public class SaveEsignDocumentsAndViewSignStatusManager extends AbstractManager{
 		this.user = user;
 	}
 	
-	public void setUser() throws CASSystemException {
+	public void setUser() throws SystemException {
 		this.user = CommonUtil.getAuditUser(request);
 	}
 
@@ -262,8 +262,8 @@ public class SaveEsignDocumentsAndViewSignStatusManager extends AbstractManager{
 		this.documentContextIdList = documentContextIdList;
 	}
 	
-	public void setDocumentContextIdList() throws CASSystemException {
-		this.documentContextIdList = wsceSignRequestManager.getDocumentContextIds(wscManagerFactory.createWorksheetWrapper().getCreditApplicationDocMap(creditApp.getCrdtAplcnOid(), wsceSignRequestManager.getDocumentTypeArray()));
+	public void setDocumentContextIdList() throws SystemException {
+		this.documentContextIdList = requestManager.getDocumentContextIds(managerFactory.createWorksheetWrapper().getCreditApplicationDocMap(creditApp.getCrdtAplcnOid(), requestManager.getDocumentTypeArray()));
         
 	}
 
@@ -275,7 +275,7 @@ public class SaveEsignDocumentsAndViewSignStatusManager extends AbstractManager{
 		this.printInputXml = printInputXml;
 	}
 	
-	public void setPrintInputXml() throws CASSystemException, CASApplicationException {
+	public void setPrintInputXml() throws SystemException, ApplicationException {
 		this.printInputXml = servicesUtil.getWorksheetServiceXmlNonStatic(dynaFieldMap, creditApp, fsOid, financeSourceId, new Locale(Locale.ENGLISH.getLanguage(), Locale.CANADA.getCountry()), dlrOid, user);
 	}
 
@@ -283,58 +283,58 @@ public class SaveEsignDocumentsAndViewSignStatusManager extends AbstractManager{
 		this.servicesUtil = servicesUtil;
 	}
 	
-	public void setWscManagerFactory(WscManagerFactory wscManagerFactory) {
-		this.wscManagerFactory = wscManagerFactory;
+	public void setManagerFactory(ManagerFactory managerFactory) {
+		this.managerFactory = managerFactory;
 	}
 
 	public void setWorksheetContractTermsDAUtil(WorksheetContractTermsDAUtil worksheetContractTermsDAUtil) {
 		this.worksheetContractTermsDAUtil = worksheetContractTermsDAUtil;
 	}
 
-	public void setWsceSignRequestManager(WSCeSignRequestManager wsceSignRequestManager) {
-		this.wsceSignRequestManager = wsceSignRequestManager;
+	public void setRequestManager(RequestManager requestManager) {
+		this.requestManager = requestManager;
 	}
 
-	public void setEsignPackageTotalDocumentSize() throws CASSystemException {
+	public void setEsignPackageTotalDocumentSize() throws SystemException {
 		dForm.set(WorksheetConstants.TOTAL_DOCUMENT_SIZE, String.valueOf(worksheetUtil.getUnprocessedVersionDocSizeNonStatic(caOid, request)));   
 	}
 	
 	public void setUserTimeZone() {
 		if(user != null && user.getTimeZone() == null){
-			user.setTimeZone(CASConstants.GMT_TIMEZONE);
+			user.setTimeZone(Constants.GMT_TIMEZONE);
 		}
 	}
 	
 	public void saveFinalInterestRateToWorksheet() {
-		if(WorksheetConstants.YES_VALUE.equals((String)dForm.getMap().get(WorksheetConstants.ContractTermsConstants.WSC_CPP)) && finalIntRate !=null && StringUtils.isNotEmpty(finalIntRate)){
+		if(WorksheetConstants.YES_VALUE.equals((String)dForm.getMap().get(WorksheetConstants.ContractTermsConstants.CPP)) && finalIntRate !=null && StringUtils.isNotEmpty(finalIntRate)){
            worksheetUtil.setDynaFieldNonStatic(dForm.getMap(), WorksheetConstants.Keys.DYNA_MAP_KEY, WorksheetConstants.ContractProgram.FINAL_INTEREST_RATE, TOFieldTransformations.doubleToString(new Double(finalIntRate), WorksheetConstants.TWO_DECIMAL_PLACES, context.getLocale()));
 		}
 	}
 	
-	public void populateDefaultWorksheetAndCreditAppFields() throws CASSystemException {
+	public void populateDefaultWorksheetAndCreditAppFields() throws SystemException {
 		worksheetUtil.setCLMDefaultFieldsNonStatic(dForm, caForm, financeSourceId, dealerState);
         worksheetUtil.updateContractFormNumberNonStatic(dForm, caForm, financeSourceId);
         worksheetContractTermsDAUtil.setFieldsFromDONonStatic(dynaFieldMap, worksheetContractTermsDAUtil.getWorksheetContractTermsNonStatic(null, (String) caForm.get(WorksheetConstants.CreditApp.Fields.TRANS_TYPE), dForm.getMap(), user, context.getLocale(), TimeZone.getTimeZone(worksheetUtil.getDealerTimeZone(request))), Locale.US);
 	}
 	
-	public void saveeSignDocuments() throws CASSystemException, CASApplicationException {
+	public void saveeSignDocuments() throws SystemException, ApplicationException {
 		if(CollectionUtils.isEmpty(documentContextIdList)){
-        	Long wscOid = TOFieldTransformations.stringToLong((String) dForm.get(WorksheetConstants.ContractContextConstants.WSC_OID));
-        	wscManagerFactory.createWorksheetManager().updateeSignPrintGenerationNumber(dynaFieldMap, wscOid);
-        	wsceSignRequestManager.saveEsignDocuments(request, dForm, creditApp, printInputXml, documentContextIdList);
+        	Long oid = TOFieldTransformations.stringToLong((String) dForm.get(WorksheetConstants.ContractContextConstants.OID));
+        	managerFactory.createWorksheetManager().updateeSignPrintGenerationNumber(dynaFieldMap, oid);
+        	requestManager.saveEsignDocuments(request, dForm, creditApp, printInputXml, documentContextIdList);
         }	
 	}
 	
-	public void setWorksheetTaxAndFeeDescriptions() throws CASSystemException {
+	public void setWorksheetTaxAndFeeDescriptions() throws SystemException {
 		ServicesUtil.populateDescritions(request, dynaFieldMap,  new Locale(printLang, context.getLocale().getCountry()));
 	}
 	
-	public void copyFsDetailsFromCreditAppToWorksheet() throws CASSystemException {
+	public void copyFsDetailsFromCreditAppToWorksheet() throws SystemException {
 		worksheetUtil.setDescriptorNameInFormNonStatic(dForm, caForm);
 	}
 	
 	public void setClientIdValues() {
-		dynaFieldMap.put(CASConstants.CLIENTID_SECTION_ESIGNFLOW, WorksheetConstants.YES_VALUE);
+		dynaFieldMap.put(Constants.CLIENTID_SECTION_ESIGNFLOW, WorksheetConstants.YES_VALUE);
 	}
 	
 }

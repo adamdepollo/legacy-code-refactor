@@ -1,4 +1,4 @@
-package com.routeone.cas.worksheet.manager;
+package com.refactor.worksheet.manager;
 
 import static org.hamcrest.CoreMatchers.any;
 import static org.junit.Assert.*;
@@ -37,32 +37,32 @@ import org.mockito.MockitoAnnotations;
 import org.mockito.runners.MockitoJUnitRunner;
 
 import com.natpryce.makeiteasy.MakeItEasy;
-import com.routeone.cas.UseJFigFileForTest;
-import com.routeone.cas.common.CASConstants;
-import com.routeone.cas.common.i18n.I18NContext;
-import com.routeone.cas.common.services.ServicesUtil;
-import com.routeone.cas.common.util.CommonUtil;
-import com.routeone.cas.creditapplication.action.CASWorksheetAction;
-import com.routeone.cas.creditapplication.dataobject.CreditApplicationDO;
-import com.routeone.cas.creditapplication.makers.CreditApplicationDOMaker;
-import com.routeone.cas.creditapplication.makers.CreditApplicationDocMapMaker;
-import com.routeone.cas.creditapplication.util.TOUtils;
-import com.routeone.cas.creditapplication.util.WorksheetUtil;
-import com.routeone.cas.domain.User;
-import com.routeone.cas.esign.managers.WSCeSignDisplayManager;
-import com.routeone.cas.esign.managers.WSCeSignRequestManager;
-import com.routeone.cas.framework.exception.newex.CASApplicationException;
-import com.routeone.cas.framework.exception.newex.CASSystemException;
-import com.routeone.cas.worksheet.base.AbstractManagerTest;
-import com.routeone.cas.worksheet.constant.WorksheetConstants;
-import com.routeone.cas.worksheet.domain.WorksheetContractTerms;
-import com.routeone.cas.worksheet.doutil.WorksheetContractTermsDAUtil;
-import com.routeone.cas.worksheet.form.WSDynaValidatorActionForm;
-import com.routeone.cas.worksheet.to.PrintDocument;
-import com.routeone.cas.worksheet.to.PrintDocumentsTO;
+import com.refactor.UseJFigFileForTest;
+import com.refactor.common.Constants;
+import com.refactor.common.i18n.I18NContext;
+import com.refactor.common.services.ServicesUtil;
+import com.refactor.common.util.CommonUtil;
+import com.refactor.creditapplication.action.WorksheetAction;
+import com.refactor.creditapplication.dataobject.CreditApplicationDO;
+import com.refactor.creditapplication.makers.CreditApplicationDOMaker;
+import com.refactor.creditapplication.makers.CreditApplicationDocMapMaker;
+import com.refactor.creditapplication.util.TOUtils;
+import com.refactor.creditapplication.util.WorksheetUtil;
+import com.refactor.domain.User;
+import com.refactor.esign.managers.DisplayManager;
+import com.refactor.esign.managers.RequestManager;
+import com.refactor.framework.exception.newex.ApplicationException;
+import com.refactor.framework.exception.newex.SystemException;
+import com.refactor.worksheet.base.AbstractManagerTest;
+import com.refactor.worksheet.constant.WorksheetConstants;
+import com.refactor.worksheet.domain.WorksheetContractTerms;
+import com.refactor.worksheet.doutil.WorksheetContractTermsDAUtil;
+import com.refactor.worksheet.form.WSDynaValidatorActionForm;
+import com.refactor.worksheet.to.PrintDocument;
+import com.refactor.worksheet.to.PrintDocumentsTO;
 
 @RunWith(MockitoJUnitRunner.class)
-public class SaveeSignDocumentsAndViewSignStatusManagerTest extends AbstractManagerTest {
+public class RefactoredManagerTest extends AbstractManagerTest {
 	@ClassRule
 	public static UseJFigFileForTest useJFigFileForTest = new UseJFigFileForTest("test.config.xml");
 	
@@ -97,7 +97,7 @@ public class SaveeSignDocumentsAndViewSignStatusManagerTest extends AbstractMana
 	@Mock
 	private WorksheetContractTerms mockWorksheetContractTerms;
 	@Mock
-	private WSCeSignDisplayManager mockWsceSignDisplayManager;
+	private DisplayManager mockDisplayManager;
 	@Mock
 	private WorksheetContractTermsDAUtil mockWorksheetContractTermsDAUtil;
 	@Mock
@@ -107,13 +107,13 @@ public class SaveeSignDocumentsAndViewSignStatusManagerTest extends AbstractMana
 	@Mock
 	private ServicesUtil mockServicesUtil;
 	@Mock
-	private WSCeSignRequestManager mockWSCeSignRequestManager;
+	private RequestManager mockRequestManager;
 	@Mock
 	private PrintDocumentsTO mockPrintDocumenstTO;
 	@Mock
-	private CASWorksheetAction mockCASWorksheetAction;
+	private WorksheetAction mockWorksheetAction;
 	
-	private SaveEsignDocumentsAndViewSignStatusManager managerSubject;
+	private RefactoredManager managerSubject;
 	
 	private Map finalInterestRate;
 	
@@ -129,20 +129,19 @@ public class SaveeSignDocumentsAndViewSignStatusManagerTest extends AbstractMana
 		ctx = new I18NContext();
 		Locale locale = Locale.CANADA;
 		ctx.setLocale(locale);
-		//subject = new CASWorksheetAction();
 		mockWarrantyAndMaintenanceServiceManager = managerFactoryWithMocks.createWarrantyAndMaintenanceServiceManager();
 		mockWorksheetUtil = managerFactoryWithMocks.createWorksheetUtil();
-		managerSubject = new SaveEsignDocumentsAndViewSignStatusManager();
-		managerSubject.setDisplayManager(mockWsceSignDisplayManager);
+		managerSubject = new RefactoredManager();
+		managerSubject.setDisplayManager(mockDisplayManager);
 		managerSubject.setWorksheetUtil(mockWorksheetUtil);
 		managerSubject.setWorksheetContractTermsDAUtil(mockWorksheetContractTermsDAUtil);
 		managerSubject.setServicesUtil(mockServicesUtil);
-		managerSubject.setWsceSignRequestManager(mockWSCeSignRequestManager);
-		managerSubject.setWscManagerFactory(managerFactoryWithMocks);
+		managerSubject.setRequestManager(mockRequestManager);
+		managerSubject.setManagerFactory(managerFactoryWithMocks);
 	}
 	
 	@Test
-	public void saveEsignDocumentsWithNoDocumentContextIdsTest() throws CASSystemException, CASApplicationException {
+	public void saveEsignDocumentsWithNoDocumentContextIdsTest() throws SystemException, ApplicationException {
 		dynaFields.put(WorksheetConstants.ContractContextConstants.FNC_SRC_OID, "12345");
 		when(managerFactoryWithMocks.createWorksheetWrapper().getCreditApplicationDocMap(anyLong(), anyString(), anyString(), anyString(), anyString(), anyString())).thenReturn(null);
 		managerSubject.setCreditApp(MakeItEasy.make(CreditApplicationDOMaker.createCreditAppDO));
@@ -151,13 +150,13 @@ public class SaveeSignDocumentsAndViewSignStatusManagerTest extends AbstractMana
 		managerSubject.setPrintInputXml("string");
 		managerSubject.setdForm(mockdForm);
 		managerSubject.setDocumentContextIdList();
-		final SaveEsignDocumentsAndViewSignStatusManager mockSaveeSignManager = Mockito.spy(this.managerSubject);
-		mockSaveeSignManager.saveeSignDocuments();
-		verify(mockWSCeSignRequestManager).saveEsignDocuments(Mockito.any(HttpServletRequest.class), Mockito.any(DynaValidatorActionForm.class), Mockito.any(CreditApplicationDO.class), anyString(), Mockito.anySetOf(UUID.class));
+		final RefactoredManager mockRefactoredManager = Mockito.spy(this.managerSubject);
+		mockRefactoredManager.saveeSignDocuments();
+		verify(mockRequestManager).saveEsignDocuments(Mockito.any(HttpServletRequest.class), Mockito.any(DynaValidatorActionForm.class), Mockito.any(CreditApplicationDO.class), anyString(), Mockito.anySetOf(UUID.class));
 	}
 	
 	@Test
-	public void saveEsignDocumentsWithDocumentContextIdsTest() throws CASSystemException, CASApplicationException {
+	public void saveEsignDocumentsWithDocumentContextIdsTest() throws SystemException, ApplicationException {
 		final Set<UUID> contextIds = new HashSet<>();
 		contextIds.add(new UUID(0, 0));
 		dynaFields.put(WorksheetConstants.ContractContextConstants.FNC_SRC_OID, "12345");
@@ -167,14 +166,14 @@ public class SaveeSignDocumentsAndViewSignStatusManagerTest extends AbstractMana
 		managerSubject.setPrintInputXml("string");
 		managerSubject.setdForm(mockdForm);
 		managerSubject.setDocumentContextIdList(contextIds);
-		final SaveEsignDocumentsAndViewSignStatusManager mockSaveeSignManager = Mockito.spy(this.managerSubject);
-		mockSaveeSignManager.saveeSignDocuments();
-		verify(mockWSCeSignRequestManager, Mockito.never()).saveEsignDocuments(Mockito.any(HttpServletRequest.class), Mockito.any(DynaValidatorActionForm.class), Mockito.any(CreditApplicationDO.class), anyString(), Mockito.anySetOf(UUID.class));
+		final RefactoredManager mockRefactoredManager = Mockito.spy(this.managerSubject);
+		mockRefactoredManager.saveeSignDocuments();
+		verify(mockRequestManager, Mockito.never()).saveEsignDocuments(Mockito.any(HttpServletRequest.class), Mockito.any(DynaValidatorActionForm.class), Mockito.any(CreditApplicationDO.class), anyString(), Mockito.anySetOf(UUID.class));
 	}
 	
 	@Test
-    public void initializeDataValuesTest() throws CASSystemException, CASApplicationException {
-		final SaveEsignDocumentsAndViewSignStatusManager manager = Mockito.spy(this.managerSubject);
+    public void initializeDataValuesTest() throws SystemException, ApplicationException {
+		final RefactoredManager manager = Mockito.spy(this.managerSubject);
 		finalInterestRate.put(WorksheetConstants.ContractProgram.FINAL_INTEREST_RATE, ".05");
 		dynaFields.put(WorksheetConstants.ContractContextConstants.FNC_SRC_OID, "12345");
 		when(mockHttpServletRequest.getSession(false)).thenReturn(mockHttpSession);
@@ -187,7 +186,7 @@ public class SaveeSignDocumentsAndViewSignStatusManagerTest extends AbstractMana
 		when(mockCreditAppForm.get(TOUtils.CREDIT_APPLICATION_SELECTED_FS)).thenReturn(new String[] { "1" });
 		when(mockHttpSession.getAttribute(CASConstants.AUDIT_USER)).thenReturn(mockedUser);
 		when(mockCreditAppForm.get("creditAppOid")).thenReturn("01234555");
-		when(mockWsceSignDisplayManager.getCreditApplicationDO(anyString())).thenReturn(MakeItEasy.make(CreditApplicationDOMaker.createCreditAppDO));
+		when(mockDisplayManager.getCreditApplicationDO(anyString())).thenReturn(MakeItEasy.make(CreditApplicationDOMaker.createCreditAppDO));
 		when(mockHttpSession.getAttribute(CASConstants.ROUTEONE_DEALER_OID)).thenReturn(123456L);
 		when(mockdForm.get(WorksheetConstants.ContractContextConstants.FNC_SRC_ID)).thenReturn("12345");
 		when(mockWorksheetUtil.copyMapAndDynaFieldsNonStatic(mockdForm)).thenReturn(dynaFields);
@@ -197,7 +196,7 @@ public class SaveeSignDocumentsAndViewSignStatusManagerTest extends AbstractMana
 		when(mockServicesUtil.getWorksheetServiceXmlNonStatic(Mockito.any(Map.class), Mockito.any(CreditApplicationDO.class), anyString(), anyString(), Mockito.any(Locale.class), anyLong(), Mockito.any(User.class))).thenReturn("xml");
         when(managerFactoryWithMocks.createWorksheetUtil().getWorkSheetPrintableDocuments(mockHttpServletRequest, mockActionForm)).thenReturn(createPrintDocumentsTO());
         when(mockActionMapping.findForward("displayeSignPage")).thenReturn(mockActionForward);
-        when(mockdForm.get(WorksheetConstants.ContractContextConstants.WSC_OID)).thenReturn("1234567");
+        when(mockdForm.get(WorksheetConstants.ContractContextConstants.OID)).thenReturn("1234567");
         when(managerFactoryWithMocks.createWorksheetWrapper().getCreditApplicationDocMap(anyLong(), anyString(), anyString(), anyString(), anyString(), anyString())).thenReturn(CreditApplicationDocMapMaker.aListWith(CreditApplicationDocMapMaker.CREDIT_APP_DOC_MAP_WITH_CONTRACT, CreditApplicationDocMapMaker.CREDIT_APP_DOC_MAP_WITH_CREDITAPP));
         manager.initializeDataValues(mockdForm, mockHttpServletRequest, mockCASWorksheetAction);
         assertNotNull(manager.getCaForm());

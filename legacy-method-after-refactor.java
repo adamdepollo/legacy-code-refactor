@@ -1,5 +1,5 @@
-public final ActionForward saveEsignDocumentsAndViewSignStatus(ActionMapping mapping, ActionForm form, HttpServletRequest request, HttpServletResponse response) throws CASSystemException, CASApplicationException {
-        SaveEsignDocumentsAndViewSignStatusManager manager = wscManagerFactory.createSaveeSignDocumentsAndViewSignStatusManager();
+public final ActionForward saveEsignDocumentsAndViewSignStatus(ActionMapping mapping, ActionForm form, HttpServletRequest request, HttpServletResponse response) throws SystemException, ApplicationException {
+        RefactoredManager manager = managerFactory.createRefactoredManager();
 		manager.initializeDataValues(castActionFormToDynaValidatorActionForm(form), request, this);
         setSelectedWarrantyPlanDescription(castActionFormToWSDynaValidatorActionForm(form), manager.getUser());
         manager.saveeSignDocuments();
